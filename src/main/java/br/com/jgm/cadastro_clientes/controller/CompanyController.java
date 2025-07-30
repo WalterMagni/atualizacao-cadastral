@@ -4,6 +4,8 @@ import br.com.jgm.cadastro_clientes.dto.CompanyDTO;
 import br.com.jgm.cadastro_clientes.service.CompanyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,8 +19,8 @@ public class CompanyController {
     private final CompanyService service;
 
     @GetMapping
-    public ResponseEntity<List<CompanyDTO>> listAll() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<Page<CompanyDTO>> listAll(Pageable pageable) {
+        return ResponseEntity.ok(service.findAll(pageable));
     }
 
     @GetMapping("/{id}")

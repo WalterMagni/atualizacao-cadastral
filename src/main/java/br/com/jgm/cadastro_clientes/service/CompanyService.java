@@ -6,6 +6,8 @@ import br.com.jgm.cadastro_clientes.model.Company;
 import br.com.jgm.cadastro_clientes.repository.CompanyRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,8 +21,8 @@ public class CompanyService {
     private final CompanyRepository repository;
     private final CompanyMapper mapper;
 
-    public List<CompanyDTO> findAll() {
-        return repository.findAll().stream().map(mapper::toDTO).collect(Collectors.toList());
+    public Page<CompanyDTO> findAll(Pageable pageable) {
+        return repository.findAll(pageable).map(mapper::toDTO);
     }
 
     public CompanyDTO findById(Long id) {

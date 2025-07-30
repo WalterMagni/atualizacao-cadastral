@@ -3,13 +3,13 @@ package br.com.jgm.cadastro_clientes.service;
 import br.com.jgm.cadastro_clientes.dto.EmployeeDTO;
 import br.com.jgm.cadastro_clientes.mapper.EmployeeMapper;
 import br.com.jgm.cadastro_clientes.model.Company;
-import br.com.jgm.cadastro_clientes.model.Department;
 import br.com.jgm.cadastro_clientes.model.Employee;
 import br.com.jgm.cadastro_clientes.repository.CompanyRepository;
-import br.com.jgm.cadastro_clientes.repository.DepartmentRepository;
 import br.com.jgm.cadastro_clientes.repository.EmployeeRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,12 +21,19 @@ public class EmployeeService {
 
     private final EmployeeRepository repository;
     private final CompanyRepository companyRepository;
-    private final DepartmentRepository departmentRepository;
     private final EmployeeMapper mapper;
 
-    public List<EmployeeDTO> findAll() {
-        return repository.findAll().stream().map(mapper::toDTO).collect(Collectors.toList());
+    public Page<EmployeeDTO> findAll(Pageable pageable) {
+        return repository.findAll(pageable).map(mapper::toDTO);
     }
+
+    public List<EmployeeDTO> findAllActive() {
+        return repository.findAll().stream()
+                .filter(Employee::getIsActive)
+                .map(mapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
 
     public EmployeeDTO findById(Long id) {
         Employee employee = resolveEmployee(id);
@@ -41,10 +48,8 @@ public class EmployeeService {
             existing.setCompany(company);
         }
 
-        if (dto.getDepartmentIds() != null) {
-            List<Department> departments = departmentRepository.findAllById(dto.getDepartmentIds());
-            existing.setDepartments(departments);
-        }
+        existing.setIsActive(dto.getIsActive());
+        existing.setHierarchyLevel(dto.getHierarchyLevel());
 
         return mapper.toDTO(repository.save(existing));
     }
@@ -62,10 +67,8 @@ public class EmployeeService {
             existing.setCompany(null);
         }
 
-        if (dto.getDepartmentIds() != null) {
-            List<Department> departments = departmentRepository.findAllById(dto.getDepartmentIds());
-            existing.setDepartments(departments);
-        }
+        existing.setIsActive(dto.getIsActive());
+        existing.setHierarchyLevel(dto.getHierarchyLevel());
 
         Employee saved = repository.save(existing);
         return mapper.toDTO(saved);

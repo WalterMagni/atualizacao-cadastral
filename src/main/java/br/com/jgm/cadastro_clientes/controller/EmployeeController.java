@@ -5,6 +5,8 @@ import br.com.jgm.cadastro_clientes.model.Employee;
 import br.com.jgm.cadastro_clientes.service.EmployeeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,8 +20,8 @@ public class EmployeeController {
     private final EmployeeService service;
 
     @GetMapping
-    public ResponseEntity<List<EmployeeDTO>> listAll() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<Page<EmployeeDTO>> listAll(Pageable pageable) {
+        return ResponseEntity.ok(service.findAll(pageable));
     }
 
     @GetMapping("/{id}")

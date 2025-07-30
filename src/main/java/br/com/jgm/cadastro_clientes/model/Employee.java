@@ -1,6 +1,8 @@
 package br.com.jgm.cadastro_clientes.model;
 
 import br.com.jgm.cadastro_clientes.model.common.Auditable;
+import br.com.jgm.cadastro_clientes.model.enums.DepartmentType;
+import br.com.jgm.cadastro_clientes.model.enums.HierarchyLevel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -8,6 +10,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -30,16 +33,25 @@ public class Employee extends Auditable {
     @Pattern(regexp = "\\(\\d{2}\\) \\d{4,5}-\\d{4}", message = "Formato de telefone inválido")
     private String phone;
 
+    @Pattern(regexp = "\\d{11}", message = "CPF deve conter 11 dígitos")
+    @Column(length = 11, unique = true)
+    private String cpf;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private HierarchyLevel hierarchyLevel;
+
     @ManyToOne
     @JoinColumn(name = "company_id", nullable = false)
     private Company company;
 
-    @ManyToMany
-    @JoinTable(
-            name = "employee_department",
-            joinColumns = @JoinColumn(name = "employee_id"),
-            inverseJoinColumns = @JoinColumn(name = "department_id")
-    )
-    private List<Department> departments;
+    @ElementCollection(targetClass = DepartmentType.class)
+    @CollectionTable(name = "employee_departments", joinColumns = @JoinColumn(name = "employee_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "department")
+    private Set<DepartmentType> departments;
 }
 

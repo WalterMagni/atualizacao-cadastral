@@ -1,10 +1,8 @@
 package br.com.jgm.cadastro_clientes.config;
 
 import br.com.jgm.cadastro_clientes.model.Company;
-import br.com.jgm.cadastro_clientes.model.Department;
 import br.com.jgm.cadastro_clientes.model.Employee;
 import br.com.jgm.cadastro_clientes.repository.CompanyRepository;
-import br.com.jgm.cadastro_clientes.repository.DepartmentRepository;
 import br.com.jgm.cadastro_clientes.repository.EmployeeRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
