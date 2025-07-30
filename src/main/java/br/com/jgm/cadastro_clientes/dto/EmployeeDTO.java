@@ -16,16 +16,13 @@ import java.util.Set;
 @AllArgsConstructor
 public class EmployeeDTO {
     private Long id;
-
-    @NotBlank(message = "O campo 'name' é obrigatório")
     private String name;
-    @Email(message = "Formato de email inválido")
     private String email;
     private String phone;
     private String cpf;
     private Boolean isActive;
-    private HierarchyLevel hierarchyLevel;
     private Long companyId;
     private Set<DepartmentType> departments;
+    private HierarchyLevel hierarchyLevel;
 
 }

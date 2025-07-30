@@ -2,44 +2,104 @@ package br.com.jgm.cadastro_clientes.config;
 
 import br.com.jgm.cadastro_clientes.model.Company;
 import br.com.jgm.cadastro_clientes.model.Employee;
+import br.com.jgm.cadastro_clientes.model.enums.DepartmentType;
+import br.com.jgm.cadastro_clientes.model.enums.HierarchyLevel;
 import br.com.jgm.cadastro_clientes.repository.CompanyRepository;
 import br.com.jgm.cadastro_clientes.repository.EmployeeRepository;
+import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.io.InputStream;
+import java.util.*;
 
-@Configuration
-public class DataInitializer {
+@Component
+@RequiredArgsConstructor
+public class DataInitializer implements CommandLineRunner {
 
-    @Bean
-    CommandLineRunner initData(
-            CompanyRepository companyRepo,
-            EmployeeRepository employeeRepo,
-            DepartmentRepository departmentRepo
-    ) {
-        return args -> {
+    private final CompanyRepository companyRepository;
+    private final EmployeeRepository employeeRepository;
+    private final Map<String, Company> companyCache = new HashMap<>();
 
-            // Departamentos
-            Department d1 = new Department(null, "TI", null);
-            Department d2 = new Department(null, "RH", null);
-            departmentRepo.saveAll(List.of(d1, d2));
+    @Override
+    public void run(String... args) throws Exception {
+        InputStream inputStream = getClass().getResourceAsStream("/relatorio.xlsx");
+        Workbook workbook = new XSSFWorkbook(inputStream);
+        Sheet sheet = workbook.getSheetAt(0);
 
-            // Empresa
-            Company empresa = new Company(null, 1001L, "JGM Ltda", "JGM", "68.890.722/0001-00", null);
-            companyRepo.save(empresa);
+        for (Row row : sheet) {
+            if (row.getRowNum() == 0) continue; // pula cabeçalho
 
-            // Colaboradores
-            Employee e1 = new Employee(null, "João Silva", "joao@email.com", "11999999999", empresa, List.of(d1));
-            Employee e2 = new Employee(null, "Maria Souza", "maria@email.com", "11888888888", empresa, List.of(d1, d2));
-            employeeRepo.saveAll(List.of(e1, e2));
+            // Colunas da empresa: A-D (0-3)
+            String codigoInterno = getCellValueAsString(row.getCell(0));
+            String razaoSocial = getCellValueAsString(row.getCell(1));
+            String cnpj = getCellValueAsString(row.getCell(2));
+            String nomeFantasia = getCellValueAsString(row.getCell(3));
 
-            // Associar colaboradores à empresa
-            empresa.setEmployees(List.of(e1, e2));
-            companyRepo.save(empresa);
+            Company company = companyCache.computeIfAbsent(codigoInterno, code -> {
+                return companyRepository.findByInternalCode(Long.parseLong(code))
+                        .orElseGet(() -> {
+                            Company newCompany = new Company();
+                            newCompany.setInternalCode(Long.parseLong(code));
+                            newCompany.setName(razaoSocial);
+                            newCompany.setCnpj(cnpj);
+                            newCompany.setFantasyName(nomeFantasia);
+                            return companyRepository.save(newCompany);
+                        });
+            });
 
-            System.out.println("✅ Dados de teste inseridos com sucesso.");
+            // Colunas do colaborador: E em diane
+            String nome = getCellValueAsString(row.getCell(4));
+            String cpf = getCellValueAsString(row.getCell(5));
+            String email = getCellValueAsString(row.getCell(6));
+
+            String departamentosStr = getCellValueAsString(row.getCell(7));
+            Set<DepartmentType> departamentos = new HashSet<>();
+            if (departamentosStr.equalsIgnoreCase("Todos")) {
+                departamentos = EnumSet.allOf(DepartmentType.class);
+            } else {
+                for (String dep : departamentosStr.split(",")) {
+                    departamentos.add(DepartmentType.valueOf(dep.trim().toUpperCase()));
+                }
+            }
+
+            String telefone = getCellValueAsString(row.getCell(8));
+            Boolean isActive = Boolean.parseBoolean(getCellValueAsString(row.getCell(9)));
+
+            Employee employee = new Employee();
+            employee.setName(nome);
+            employee.setEmail(email);
+            employee.setPhone(telefone);
+            employee.setCpf(cpf);
+            employee.setIsActive(isActive);
+            employee.setCompany(company);
+            employee.setDepartments(departamentos);
+            employee.setHierarchyLevel(HierarchyLevel.DEFAULT); // Ajuste conforme precisar
+
+
+
+            employeeRepository.save(employee);
+        }
+
+        workbook.close();
+    }
+
+    private String getCellValueAsString(Cell cell) {
+        if (cell == null) return "";
+        return switch (cell.getCellType()) {
+            case STRING -> cell.getStringCellValue();
+            case NUMERIC -> {
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    yield cell.getDateCellValue().toString();
+                } else {
+                    yield String.valueOf((long) cell.getNumericCellValue());
+                }
+            }
+            case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
+            case FORMULA -> cell.getCellFormula();
+            case BLANK, _NONE, ERROR -> "";
         };
     }
 }

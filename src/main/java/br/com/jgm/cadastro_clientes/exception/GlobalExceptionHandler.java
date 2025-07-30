@@ -9,11 +9,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-<<<<<<< HEAD
-=======
 import java.util.HashMap;
 import java.util.Map;
->>>>>>> a6f5c78 (adição do tratamento global de exceções com GlobalExceptionHandler)
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -33,11 +30,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidationError(MethodArgumentNotValidException ex, HttpServletRequest request) {
-        String message = ex.getBindingResult()
+        Map<String, String> fieldErrors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(FieldError::getDefaultMessage)
-                .collect(Collectors.joining("; "));
+                .collect(Collectors.toMap(
+                        FieldError::getField,
+                        FieldError::getDefaultMessage,
+                        (existing, replacement) -> existing // em caso de chave duplicada
+                ));
+
+        String message = "Erro de validação nos seguintes campos: " + fieldErrors;
 
         ApiError error = new ApiError(
                 LocalDateTime.now(),
@@ -49,17 +51,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
-<<<<<<< HEAD
-=======
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                errors.put(error.getField(), error.getDefaultMessage()));
-        return ResponseEntity.badRequest().body(errors);
-    }
-
->>>>>>> a6f5c78 (adição do tratamento global de exceções com GlobalExceptionHandler)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGenericError(Exception ex, HttpServletRequest request) {
         ApiError error = new ApiError(

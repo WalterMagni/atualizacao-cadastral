@@ -21,6 +21,7 @@ public class Company extends Auditable {
     private Long id;
 
     @NotNull
+    @Column(nullable = false, unique = true)
     private Long internalCode;
 
     @NotNull
@@ -29,7 +30,7 @@ public class Company extends Auditable {
     @NotNull
     private String fantasyName;
 
-    @CNPJ(message = "CNPJ Inválido")
+    //@CNPJ(message = "CNPJ Inválido")
     @Column(length = 20)
     private String cnpj;
 

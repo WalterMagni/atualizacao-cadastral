@@ -30,11 +30,11 @@ public class Employee extends Auditable {
     @Email
     private String email;
 
-    @Pattern(regexp = "\\(\\d{2}\\) \\d{4,5}-\\d{4}", message = "Formato de telefone inválido")
+    //@Pattern(regexp = "\\(\\d{2}\\) \\d{4,5}-\\d{4}", message = "Formato de telefone inválido")
     private String phone;
 
-    @Pattern(regexp = "\\d{11}", message = "CPF deve conter 11 dígitos")
-    @Column(length = 11, unique = true)
+    //@Pattern(regexp = "\\d{11}", message = "CPF deve conter 11 dígitos")
+    //@Column(length = 11, unique = true)
     private String cpf;
 
     @Column(nullable = false)

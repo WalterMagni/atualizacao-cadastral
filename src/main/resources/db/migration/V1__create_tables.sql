@@ -20,10 +20,3 @@ CREATE TABLE employee (
     CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES company(id)
 );
 
-CREATE TABLE employee_department (
-    employee_id BIGINT NOT NULL,
-    department_id BIGINT NOT NULL,
-    PRIMARY KEY (employee_id, department_id),
-    CONSTRAINT fk_employee FOREIGN KEY (employee_id) REFERENCES employee(id),
-    CONSTRAINT fk_department FOREIGN KEY (department_id) REFERENCES department(id)
-);

@@ -34,59 +34,51 @@ public class EmployeeService {
                 .collect(Collectors.toList());
     }
 
-
     public EmployeeDTO findById(Long id) {
         Employee employee = resolveEmployee(id);
         return mapper.toDTO(employee);
     }
 
     public EmployeeDTO save(EmployeeDTO dto) {
-        Employee existing = mapper.toEntity(dto);
-
-        if(dto.getCompanyId() != null) {
-            Company company = resolveCompany(dto.getCompanyId());
-            existing.setCompany(company);
-        }
-
-        existing.setIsActive(dto.getIsActive());
-        existing.setHierarchyLevel(dto.getHierarchyLevel());
-
-        return mapper.toDTO(repository.save(existing));
+        Company company = resolveCompany(dto.getCompanyId());
+        Employee employee = mapper.toEntity(dto, company);
+        return mapper.toDTO(repository.save(employee));
     }
 
     public EmployeeDTO update(Long id, EmployeeDTO dto) {
         Employee existing = resolveEmployee(id);
+
         existing.setName(dto.getName());
         existing.setEmail(dto.getEmail());
         existing.setPhone(dto.getPhone());
+        existing.setCpf(dto.getCpf());
+        existing.setIsActive(dto.getIsActive());
+        existing.setDepartments(dto.getDepartments());
+        existing.setHierarchyLevel(dto.getHierarchyLevel());
 
-        if(dto.getCompanyId() != null) {
-            Company company = resolveCompany(dto.getCompanyId());
-            existing.setCompany(company);
+        if (dto.getCompanyId() != null) {
+            existing.setCompany(resolveCompany(dto.getCompanyId()));
         } else {
             existing.setCompany(null);
         }
 
-        existing.setIsActive(dto.getIsActive());
-        existing.setHierarchyLevel(dto.getHierarchyLevel());
-
-        Employee saved = repository.save(existing);
-        return mapper.toDTO(saved);
+        return mapper.toDTO(repository.save(existing));
     }
 
     public void delete(Long id) {
-        if(!repository.existsById(id)) {
-            throw new EntityNotFoundException("Colaborador com ID " + id + " não encontrado");
+        if (!repository.existsById(id)) {
+            throw new EntityNotFoundException("Colaborador com ID " + id + " não encontrado");
         }
         repository.deleteById(id);
     }
 
     private Employee resolveEmployee(Long id) {
-        return repository.findById(id).orElseThrow(() -> new EntityNotFoundException("Colaborador com ID " + id + " não encontrado"));
+        return repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Colaborador com ID " + id + " não encontrado"));
     }
 
     private Company resolveCompany(Long id) {
-        return companyRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Empresa com ID " + id + " não encontrada"));
+        return companyRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Empresa com ID " + id + " não encontrada"));
     }
-
 }

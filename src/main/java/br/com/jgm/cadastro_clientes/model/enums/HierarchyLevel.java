@@ -6,5 +6,6 @@ public enum HierarchyLevel {
     COORDENADOR,
     ANALISTA,
     ASSISTENTE,
-    ESTAGIARIO
+    ESTAGIARIO,
+    DEFAULT
 }
