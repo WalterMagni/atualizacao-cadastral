@@ -1,6 +1,8 @@
 package br.com.jgm.cadastro_clientes.controller;
 
+import br.com.jgm.cadastro_clientes.dto.CompanyContactIssueDTO;
 import br.com.jgm.cadastro_clientes.dto.CompanyDTO;
+import br.com.jgm.cadastro_clientes.dto.EmployeeMissingDataDTO;
 import br.com.jgm.cadastro_clientes.service.CompanyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,15 @@ public class CompanyController {
         CompanyDTO dto = service.findByInternalCode(code);
         return ResponseEntity.ok(dto);
     }
+
+
+    @GetMapping("/{code}/employees/missing-data")
+    public ResponseEntity<List<EmployeeMissingDataDTO>> getEmployeesWithMissingData(
+            @PathVariable String code) {
+        List<EmployeeMissingDataDTO> result = service.getEmployeesWithMissingData(code);
+        return ResponseEntity.ok(result);
+    }
+
 
     @PostMapping
     public ResponseEntity<CompanyDTO> create(@RequestBody @Valid CompanyDTO dto) {

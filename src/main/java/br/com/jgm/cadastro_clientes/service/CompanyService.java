@@ -1,9 +1,12 @@
 package br.com.jgm.cadastro_clientes.service;
 
+import br.com.jgm.cadastro_clientes.dto.CompanyContactIssueDTO;
 import br.com.jgm.cadastro_clientes.dto.CompanyDTO;
+import br.com.jgm.cadastro_clientes.dto.EmployeeMissingDataDTO;
 import br.com.jgm.cadastro_clientes.mapper.CompanyMapper;
 import br.com.jgm.cadastro_clientes.model.Company;
 import br.com.jgm.cadastro_clientes.repository.CompanyRepository;
+import br.com.jgm.cadastro_clientes.repository.EmployeeRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -11,14 +14,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CompanyService {
 
     private final CompanyRepository repository;
+    private final EmployeeRepository employeeRepository;
     private final CompanyMapper mapper;
 
     public Page<CompanyDTO> findAll(Pageable pageable) {
@@ -28,6 +30,10 @@ public class CompanyService {
     public CompanyDTO findById(Long id) {
         Company company = resolveCompany(id);
         return mapper.toDTO(company);
+    }
+
+    public List<EmployeeMissingDataDTO> getEmployeesWithMissingData(String companyCode) {
+        return employeeRepository.findEmployeesWithMissingDataByCompanyCode(companyCode);
     }
 
     public CompanyDTO findByInternalCode(Long internalCode) {

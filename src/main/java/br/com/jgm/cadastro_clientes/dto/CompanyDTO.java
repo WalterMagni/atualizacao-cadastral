@@ -18,6 +18,6 @@ public class CompanyDTO {
     private String name;
     @NotBlank(message = "Nome fantasia é obrigatório")
     private String fantasyName;
-    @CNPJ(message = "CNPJ inválido")
+    //@CNPJ(message = "CNPJ inválido")
     private String cnpj;
 }
